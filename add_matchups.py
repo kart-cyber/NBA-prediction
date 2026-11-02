@@ -7,7 +7,7 @@ Run:  python add_matchups.py
 Output: matchup_summary.csv, then a PROP FINDER prompt (see props.py)
 
 Requests made (6 total, 0.6 s apart):
-  1. Live scoreboard        -> tonight's games + team IDs          (NBA.com)
+  1. ScoreboardV3           -> tonight's games + team IDs          (NBA.com)
   2. LeagueGameLog          -> every player's game log (reused from pullTonight.py)
   3. LeagueDashTeamStats    -> every team's advanced stats (DEF_RATING, PACE)
   4. ESPN injury report     -> who is Out / Day-To-Day             (ESPN)
@@ -19,8 +19,7 @@ import time
 
 import pandas as pd
 import requests
-from nba_api.live.nba.endpoints import scoreboard
-from nba_api.stats.endpoints import leaguedashteamstats
+from nba_api.stats.endpoints import leaguedashteamstats, scoreboardv3
 
 # Reuse settings and the game-log function from step 1 (we don't modify that file)
 from pullTonight import SEASON, LAST_N, get_season_player_logs
@@ -43,8 +42,12 @@ def get_tonights_games_with_ids() -> tuple[pd.DataFrame, pd.Timestamp]:
     read the scoreboard ourselves to also get the team IDs (more reliable
     for matching than abbreviations). Returns (games, today's date).
     """
-    board = scoreboard.ScoreBoard(timeout=TIMEOUT).get_dict()["scoreboard"]
-    today = pd.Timestamp(board["gameDate"])  # the date NBA.com considers "today"
+    # The live scoreboard keeps showing yesterday's games until late morning
+    # ET, so ask for today's date (US Eastern, like the NBA schedule) directly.
+    today = pd.Timestamp.now(tz="America/New_York").normalize().tz_localize(None)
+    board = scoreboardv3.ScoreboardV3(
+        game_date=today.strftime("%Y-%m-%d"), timeout=TIMEOUT
+    ).get_dict()["scoreboard"]
 
     games = pd.DataFrame([
         {

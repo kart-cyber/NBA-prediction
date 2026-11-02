@@ -9,11 +9,34 @@ Current Problems: Too few games are being played by everyone, will need everyone
 
 
 
-How to operate:
+## First-time setup
 
-BEFORE YOU START THESE STEPS MAKE SURE YOU HAVE THE VENV PACKAGES INSTALLED THEY ARE VERY IMPORTANT
+No API keys or accounts needed - all data comes from NBA.com and ESPN's free public feeds.
 
-1. Ensure you have the venv tag before the file path to access the venv files that contain all the libraries and databases(if you dont use this command within the terminal when you are in the NBA FOLDER: .\venv\Scripts\Activate.ps1) 
-2. Paste this command within the terminal to run the application .\venv\Scripts\python.exe add_matchups.py
-3. Type in the player that you want to bet on(no nicknames) and review their best props
-4. The terminal should give you the rest of the instructions
+1. Install a recent version of Python from https://www.python.org/downloads/ (this was built on Python 3.15).
+   On Windows, tick **"Add python.exe to PATH"** in the installer.
+2. Open a terminal **inside the `NBA-prediction` folder** (the one with `add_matchups.py` in it).
+3. Create your own venv and install the packages (only needed once):
+
+   Windows (PowerShell):
+   ```
+   python -m venv venv
+   .\venv\Scripts\python.exe -m pip install -r requirements.txt
+   ```
+
+   Mac / Linux:
+   ```
+   python3 -m venv venv
+   ./venv/bin/python -m pip install -r requirements.txt
+   ```
+
+Don't copy someone else's `venv` folder - it only works on the computer that made it.
+
+## How to run
+
+1. From the `NBA-prediction` folder, run:
+   - Windows: `.\venv\Scripts\python.exe add_matchups.py`
+   - Mac / Linux: `./venv/bin/python add_matchups.py`
+2. It loads today's games (first run takes a minute while it downloads game logs).
+3. Type in the player that you want to bet on (no nicknames, e.g. `maxey`) and review their best props.
+4. Type a line like `pts 27.5` to check a sportsbook line, `list` to see everyone playing, or `q` to quit.
