@@ -7,7 +7,11 @@ Next Steps: Will need to update specific stats based off of changing environment
 
 Current Problems: Too few games are being played by everyone, will need everyone to play a minimum of 10 games within the season so that there is more accurate data for each player and their specific bets
 
+
+
 How to operate:
+
+BEFORE YOU START THESE STEPS MAKE SURE YOU HAVE THE VENV PACKAGES INSTALLED THEY ARE VERY IMPORTANT
 
 1. Ensure you have the venv tag before the file path to access the venv files that contain all the libraries and databases(if you dont use this command within the terminal when you are in the NBA FOLDER: .\venv\Scripts\Activate.ps1) 
 2. Paste this command within the terminal to run the application .\venv\Scripts\python.exe add_matchups.py
