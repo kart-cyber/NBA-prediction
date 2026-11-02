@@ -15,7 +15,8 @@ How a projection is built (all from data we already downloaded):
        - drop games where he played under 60% of his usual minutes
          (early injury exits, blowouts)
        - cap remaining games at 40%-160% of his average for stats he
-         averages 3+ in (so a 0-point or 41-point night counts as ~9 / ~35)
+         averages 3+ in (so a 0-point or 41-point night counts as ~9 / ~35);
+         with 5+ games this season, "his average" means this season's
      Hit rates ("went over 6/10") still use his REAL results.
 
   1. BASE = a weighted average of:
@@ -23,6 +24,9 @@ How a projection is built (all from data we already downloaded):
        SEASON   his 2026-27 average                               (weight 0.4)
        H2H      his games vs tonight's opponent (2 seasons, 2+ games) (0.2)
      Weights are re-scaled to add up to 1, so missing pieces just drop out.
+     Once he has 5+ games this season, L10 only uses this season's games -
+     last season's role/minutes can be very different (e.g. end-of-season
+     rest games). Before that, L10 fills in with last season's games.
      This is done for PTS, REB, AST, 3PM, STL and BLK. Combos (PRA, PA, ...)
      are the sum of their parts.
 
@@ -82,6 +86,7 @@ PROPS = {
 # --- Base projection ---
 WEIGHTS = {"L10": 0.6, "SEASON": 0.4, "H2H": 0.2}
 MIN_H2H_GAMES = 2        # need at least this many games vs the opponent
+MIN_SEASON_GAMES = 5     # with this many games this season, L10 ignores last season
 MATCHUP_WEIGHT = 0.5     # use half of the opponent's above/below-average effect
 BACK_TO_BACK_FACTOR = 0.97
 
@@ -186,14 +191,17 @@ def opponent_factors(opp_allowed: pd.DataFrame, opp_id: int) -> dict:
 # --------------------------------------------------------------------------
 # Step 0: cleaning his games
 # --------------------------------------------------------------------------
-def clean_games(games: pd.DataFrame) -> pd.DataFrame:
+def clean_games(games: pd.DataFrame, current_season_id) -> pd.DataFrame:
     """Drop short-minute games and cap outliers (see step 0 at the top)."""
     if games.empty:
         return games
     usual_minutes = games.tail(15)["MIN"].median()
     games = games[games["MIN"] >= MIN_GAME_SHARE * usual_minutes].copy()
 
-    recent = games.tail(20)
+    # Caps come from this season once he has enough games, so a bigger role
+    # this year isn't treated as a string of outliers
+    season = games[games["SEASON_ID"] == current_season_id]
+    recent = (season if len(season) >= MIN_SEASON_GAMES else games).tail(20)
     for s in BASE_STATS:
         avg = recent[s].mean()
         if avg >= CAP_MIN_AVG:
@@ -346,16 +354,18 @@ def analyze_player(player: pd.Series, history: pd.DataFrame, allowed: pd.DataFra
                    current_season_id) -> dict:
     """Build every number the report needs for one player."""
     raw = history[history["PLAYER_ID"] == player["PLAYER_ID"]]
-    clean = clean_games(raw)
+    clean = clean_games(raw, current_season_id)
 
     # Cleaned games feed the projection...
-    last10 = clean.tail(10)
     season = clean[clean["SEASON_ID"] == current_season_id]
+    raw_season = raw[raw["SEASON_ID"] == current_season_id]
+    # Enough games this season? Then "last 10" stops reaching into last season
+    this_season_only = len(season) >= MIN_SEASON_GAMES
+    last10 = (season if this_season_only else clean).tail(10)
     h2h = clean[clean["OPP_TEAM_ID"] == player["OPP_ID"]]
     base_games = pd.concat([last10, season]).drop_duplicates("GAME_ID")
     # ...but hit rates use what really happened
-    raw_last10 = raw.tail(10)
-    raw_season = raw[raw["SEASON_ID"] == current_season_id]
+    raw_last10 = (raw_season if this_season_only else raw).tail(10)
     raw_h2h = raw[raw["OPP_TEAM_ID"] == player["OPP_ID"]]
 
     opp = opponent_factors(opp_allowed, player["OPP_ID"])
