@@ -1,6 +1,8 @@
 # NBA-prediction
 Fun little application that helps with nba players stats and also gives props/legs to casual gamblers
 
+WARNING: THIS TOOL IS NOT 100% ACCURATE. THERE ARE TIMES WHERE A PLAYER CAN PLAY MUCH WORSE/BETTER THAN EXPECTED. PLEASE ENSURE THE RISKS YOU ARE TAKING WHEN PROCEEDING WITH THIS TOOL!
+
 Update: Currently has a working output and can review props/legs for players of your own choosing. Can also check the status of players to determine if they are day to day or injured. 
 
 Next Steps: Will need to update specific stats based off of changing environments such as injured teammates/opposing players. Will also create a working UI since the application is currently being used within a terminal which is hard to operate when dealing with multiple players.
